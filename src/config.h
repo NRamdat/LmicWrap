@@ -1,0 +1,66 @@
+//////////////////////////////////////////////////
+// Config file
+//////////////////////////////////////////////////
+
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#define DEBUG_MODE 0
+#define ABP 
+//#define OTAA
+
+
+#define dutyCycle 60
+
+// define keys
+#ifdef ABP
+// NWKSKEY
+#define NWKS { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+// APPSKEY
+#define APPS { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+// DEVADDR
+#define DEV 0x00000000
+#endif
+
+#ifdef OTAA
+// APPEUI in LSB
+#define APPE 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 } 
+// DEVEUI
+#define DEV 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+// APPKEY
+#define APPK 	{ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }
+#endif
+
+
+#if DEBUG_MODE
+#define debugPrintln(x) Serial.println(x)
+#define debugPrint(x) Serial.print(x)
+#else
+#define debugPrintln(x)
+#define debugPrint(x)
+#endif
+
+
+//////////////////////////////////////////////////
+// Define LMIC PIN. Default for Arduino UNO.
+// Check pinmap or lmic library
+//////////////////////////////////////////////////
+#define pin_nss 10
+#define pin_rxtx LMIC_UNUSED_PIN
+#define pin_rst 9
+#define pin_dio {2, 6, 7}
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif
