@@ -4,6 +4,8 @@
 #include <lmic.h>
 #include <hal/hal.h>
 
+#include "config.h"
+
 void onEvent (ev_t ev);
 
 class LmicWrap

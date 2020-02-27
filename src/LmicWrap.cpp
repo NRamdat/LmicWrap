@@ -1,30 +1,56 @@
 #include "LmicWrap.h"
 
-// CHANGE THESE VARIABLES // 
+//////////////////////////////////////////////////
+// Configure / change these variables 
+//////////////////////////////////////////////////
 
 // change TX_INTERVAL to comply with the duty cycle 
-const unsigned TX_INTERVAL = 30; // seconds
-
-// pin mapping, check Arduino pinmap for this
-const lmic_pinmap lmic_pins = {
-  .nss = 10,
-  .rxtx = LMIC_UNUSED_PIN,
-  .rst = 9,
-  .dio = {2, 6, 7},
-};
-
-
-// not needed for ABP, but OTAA. Linker will complain ifnd
-void os_getArtEui (uint8_t * buf) { }
-void os_getDevEui (uint8_t * buf) { }
-void os_getDevKey (uint8_t * buf) { }
+const unsigned TX_INTERVAL = dutyCycle; // seconds
 
 // public var
 static osjob_t sendjob;
 
 
+#ifdef ABP
+
+  // Set ABP keys in config.h
+  static const PROGMEM uint8_t NWKSKEY[16] = NWKS;
+  static const PROGMEM uint8_t APPSKEY[16] = APPS;
+  static const uint32_t DEVADDR = DEV;
+  
+  // not needed for ABP, but OTAA. Linker will complain.
+  void os_getArtEui (uint8_t* buf) {  }
+  void os_getDevEui (uint8_t* buf) {  }
+  void os_getDevKey (uint8_t* buf) {  }
+  
+#endif
+
+#ifdef OTAA
+
+  static const uint8_t PROGMEM APPEUI[8]= APPE;
+  void os_getArtEui (u1_t* buf) { memcpy_P(buf, APPEUI, 8); }
+  static const uint8_t PROGMEM DEVEUI[8]= DEV;
+  void os_getDevEui (u1_t* buf) { memcpy_P(buf, DEVEUI, 8); }
+  static const uint8_t PROGMEM APPKEY[16] = APPK;
+  void os_getDevKey (u1_t* buf) { memcpy_P(buf, APPKEY, 16);}
+
+#endif
+
+// Change values in config.h
+const lmic_pinmap lmic_pins = {
+  .nss = pin_nss,
+  .rxtx = pin_rxtx,
+  .rst = pin_rst,
+  .dio = pin_dio,
+};
+
+//////////////////////////////////////////////////
+////////////////////////////////////////////////// 
+//////////////////////////////////////////////////
+
 LmicWrap::LmicWrap() { } 
 LmicWrap::~LmicWrap() { } 
+
 void LmicWrap::init() {
   Serial.println("Init inside");
 
@@ -33,11 +59,7 @@ void LmicWrap::init() {
   // Reset the MAC state. Session and pending data transfers will be discarded.
   LMIC_reset();
 
-  // Set ABP keys
-  static const PROGMEM uint8_t NWKSKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-  static const uint8_t PROGMEM APPSKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-  static const uint32_t DEVADDR = 0x00000000;
-
+#ifdef ABP
 
 #ifdef PROGMEM
   // On AVR, these values are stored in flash and only copied to RAM
@@ -62,6 +84,8 @@ void LmicWrap::init() {
   LMIC_setDrTxpow(DR_SF7, 14);
 
   //LMIC_setAdrMode(1);
+  
+#endif // END OF ABP
 }
 
 void onEvent (ev_t ev) {
@@ -104,7 +128,7 @@ void onEvent (ev_t ev) {
         Serial.println(LMIC.dataLen);
         Serial.println(F(" bytes of payload"));
       }
-      os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), LoRaLMICWrap::prepData);
+      os_setTimedCallback(&sendjob, os_getTime() + sec2osticks(TX_INTERVAL), LoRaLMICWrap::sendData);
       break;
     case EV_LOST_TSYNC:
       Serial.println(F("EV_LOST_TSYNC"));
